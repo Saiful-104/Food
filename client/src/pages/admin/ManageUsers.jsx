@@ -1,25 +1,64 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { FaSearch, FaEdit, FaTrash, FaUserPlus, FaFilter } from 'react-icons/fa';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import {
+  FaSearch,
+  FaEdit,
+  FaTrash,
+  FaUserPlus,
+  FaFilter,
+} from "react-icons/fa";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const ManageUsers = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
 
-  const users = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'user', orders: 12, joined: '2024-01-15' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'user', orders: 8, joined: '2024-01-20' },
-    { id: 3, name: 'Admin User', email: 'admin@foodexpress.com', role: 'admin', orders: 0, joined: '2024-01-10' },
-    { id: 4, name: 'Mike Johnson', email: 'mike@example.com', role: 'user', orders: 5, joined: '2024-02-01' },
-    { id: 5, name: 'Sarah Williams', email: 'sarah@example.com', role: 'user', orders: 15, joined: '2024-02-05' },
-  ];
-
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    return matchesSearch && matchesRole;
+  // Fetch all users from API
+  const {
+    data: usersData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["allUsers", roleFilter],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/users`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          params: {
+            page: 1,
+            limit: 100,
+            role: roleFilter !== "all" ? roleFilter : undefined,
+          },
+        },
+      );
+      return response.data.users || [];
+    },
   });
+
+  const filteredUsers = (usersData || []).filter((user) => {
+    const matchesSearch =
+      (user.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const handleDelete = async (userId) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/users/${userId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        toast.success("User deleted successfully!");
+        refetch();
+      } catch (error) {
+        toast.error("Failed to delete user");
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 pt-20 pb-12">
@@ -65,45 +104,80 @@ const ManageUsers = () => {
           {/* Users Table */}
           <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-neutral-50 dark:bg-neutral-700">
-                  <tr>
-                    <th className="text-left py-3 px-4 font-semibold">Name</th>
-                    <th className="text-left py-3 px-4 font-semibold">Email</th>
-                    <th className="text-left py-3 px-4 font-semibold">Role</th>
-                    <th className="text-left py-3 px-4 font-semibold">Orders</th>
-                    <th className="text-left py-3 px-4 font-semibold">Joined</th>
-                    <th className="text-left py-3 px-4 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-                      <td className="py-3 px-4 font-medium">{user.name}</td>
-                      <td className="py-3 px-4">{user.email}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                        }`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">{user.orders}</td>
-                      <td className="py-3 px-4">{user.joined}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex space-x-2">
-                          <button className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-lg text-blue-500">
-                            <FaEdit />
-                          </button>
-                          <button className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-lg text-red-500">
-                            <FaTrash />
-                          </button>
-                        </div>
-                      </td>
+              {isLoading ? (
+                <div className="p-8 text-center">
+                  <div className="inline-block w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="mt-4 text-neutral-600">Loading users...</p>
+                </div>
+              ) : error ? (
+                <div className="p-8 text-center text-red-500">
+                  <p>Failed to load users. Please try again.</p>
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="p-8 text-center text-neutral-500">
+                  <p>No users found</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-neutral-50 dark:bg-neutral-700">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Name
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Email
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Role
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Joined
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user) => (
+                      <tr
+                        key={user._id}
+                        className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700"
+                      >
+                        <td className="py-3 px-4 font-medium">{user.name}</td>
+                        <td className="py-3 px-4">{user.email}</td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              user.role === "admin"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex space-x-2">
+                            <button className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-lg text-blue-500">
+                              <FaEdit />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(user._id)}
+                              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-lg text-red-500"
+                            >
+                              <FaTrash />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </motion.div>

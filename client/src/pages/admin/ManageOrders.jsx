@@ -1,36 +1,62 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { FaSearch, FaEye, FaFilter } from 'react-icons/fa';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { FaSearch, FaEye, FaFilter } from "react-icons/fa";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const ManageOrders = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const orders = [
-    { id: '#12345', customer: 'John Doe', restaurant: 'Pizza Paradise', total: 45.99, status: 'delivered', date: '2024-03-15' },
-    { id: '#12346', customer: 'Jane Smith', restaurant: 'Burger House', total: 32.50, status: 'preparing', date: '2024-03-15' },
-    { id: '#12347', customer: 'Mike Johnson', restaurant: 'Sushi Master', total: 78.20, status: 'pending', date: '2024-03-14' },
-    { id: '#12348', customer: 'Sarah Williams', restaurant: 'Taco Fiesta', total: 28.75, status: 'on_delivery', date: '2024-03-14' },
-    { id: '#12349', customer: 'Robert Brown', restaurant: 'China Garden', total: 52.30, status: 'cancelled', date: '2024-03-13' },
-  ];
+  // Fetch all orders from API
+  const {
+    data: ordersData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["allOrders", statusFilter],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/orders`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          params: statusFilter !== "all" ? { status: statusFilter } : {},
+        },
+      );
+      return response.data.orders || [];
+    },
+  });
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'delivered': return 'bg-green-100 text-green-800';
-      case 'preparing': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'on_delivery': return 'bg-purple-100 text-purple-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-neutral-100 text-neutral-800';
+    switch (status) {
+      case "delivered":
+        return "bg-green-100 text-green-800";
+      case "preparing":
+        return "bg-blue-100 text-blue-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "confirmed":
+        return "bg-cyan-100 text-cyan-800";
+      case "on_delivery":
+        return "bg-purple-100 text-purple-800";
+      case "cancelled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-neutral-100 text-neutral-800";
     }
   };
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.restaurant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.id.includes(searchTerm);
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const filteredOrders = (ordersData || []).filter((order) => {
+    const matchesSearch =
+      (order.user?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (order.restaurant?.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (order._id || "").includes(searchTerm);
+    return matchesSearch;
   });
 
   return (
@@ -75,40 +101,84 @@ const ManageOrders = () => {
           {/* Orders Table */}
           <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-neutral-50 dark:bg-neutral-700">
-                  <tr>
-                    <th className="text-left py-3 px-4 font-semibold">Order ID</th>
-                    <th className="text-left py-3 px-4 font-semibold">Customer</th>
-                    <th className="text-left py-3 px-4 font-semibold">Restaurant</th>
-                    <th className="text-left py-3 px-4 font-semibold">Date</th>
-                    <th className="text-left py-3 px-4 font-semibold">Total</th>
-                    <th className="text-left py-3 px-4 font-semibold">Status</th>
-                    <th className="text-left py-3 px-4 font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.map((order) => (
-                    <tr key={order.id} className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700">
-                      <td className="py-3 px-4 font-medium">{order.id}</td>
-                      <td className="py-3 px-4">{order.customer}</td>
-                      <td className="py-3 px-4">{order.restaurant}</td>
-                      <td className="py-3 px-4">{order.date}</td>
-                      <td className="py-3 px-4">${order.total}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-lg text-blue-500">
-                          <FaEye />
-                        </button>
-                      </td>
+              {isLoading ? (
+                <div className="p-8 text-center">
+                  <div className="inline-block w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="mt-4 text-neutral-600">Loading orders...</p>
+                </div>
+              ) : error ? (
+                <div className="p-8 text-center text-red-500">
+                  <p>Failed to load orders. Please try again.</p>
+                </div>
+              ) : filteredOrders.length === 0 ? (
+                <div className="p-8 text-center text-neutral-500">
+                  <p>No orders found</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="bg-neutral-50 dark:bg-neutral-700">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Order ID
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Customer
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Restaurant
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Date
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Total
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Status
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((order) => (
+                      <tr
+                        key={order._id}
+                        className="border-b border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700"
+                      >
+                        <td className="py-3 px-4 font-medium">
+                          {order._id?.substring(0, 8)}...
+                        </td>
+                        <td className="py-3 px-4">
+                          {order.user?.name || "N/A"}
+                        </td>
+                        <td className="py-3 px-4">
+                          {order.restaurant?.name || "N/A"}
+                        </td>
+                        <td className="py-3 px-4">
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4">
+                          ${order.totalAmount?.toFixed(2) || "0.00"}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.orderStatus)}`}
+                          >
+                            {order.orderStatus}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <button className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-lg text-blue-500">
+                            <FaEye />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </motion.div>

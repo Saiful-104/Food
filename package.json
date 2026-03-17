@@ -1,0 +1,21 @@
+{
+  "name": "nemesis-project",
+  "version": "1.0.0",
+  "description": "FoodExpress - Food Delivery Platform",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "cd server && npm run dev",
+    "build": "npm install --prefix ./server",
+    "start": "node api/index.js"
+  },
+  "keywords": [
+    "food",
+    "delivery",
+    "restaurant"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": "18.x"
+  }
+}

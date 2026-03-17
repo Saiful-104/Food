@@ -1,32 +1,32 @@
 // src/pages/Explore.jsx
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { FaSearch, FaFilter, FaStar, FaSortAmountDown } from 'react-icons/fa';
-import axios from 'axios';
-import FoodCard from '../components/FoodCard';
-import Pagination from '../components/Pagination';
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { FaSearch, FaFilter, FaStar, FaSortAmountDown } from "react-icons/fa";
+import axios from "axios";
+import FoodCard from "../components/FoodCard";
+import Pagination from "../components/Pagination";
 
 const Explore = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    category: '',
-    cuisine: '',
-    minPrice: '',
-    maxPrice: '',
+    category: "",
+    cuisine: "",
+    minPrice: "",
+    maxPrice: "",
     vegetarian: false,
     vegan: false,
     glutenFree: false,
-    rating: ''
+    rating: "",
   });
-  const [sortBy, setSortBy] = useState('rating');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortBy, setSortBy] = useState("rating");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const limit = 12;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['foods', { ...filters, sortBy, sortOrder, page, searchTerm }],
+    queryKey: ["foods", { ...filters, sortBy, sortOrder, page, searchTerm }],
     queryFn: async () => {
       const params = new URLSearchParams({
         page,
@@ -34,19 +34,35 @@ const Explore = () => {
         sortBy,
         sortOrder,
         search: searchTerm,
-        ...filters
+        ...filters,
       });
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/foods?${params}`);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/foods?${params}`,
+      );
       return response.data;
-    }
+    },
   });
 
   const categories = [
-    'All', 'Appetizers', 'Main Course', 'Desserts', 'Beverages', 'Salads', 'Soups', 'Specials'
+    "All",
+    "Appetizers",
+    "Main Course",
+    "Desserts",
+    "Beverages",
+    "Salads",
+    "Soups",
+    "Specials",
   ];
 
   const cuisines = [
-    'Italian', 'Chinese', 'Mexican', 'Indian', 'Japanese', 'Thai', 'American', 'Mediterranean'
+    "Italian",
+    "Chinese",
+    "Mexican",
+    "Indian",
+    "Japanese",
+    "Thai",
+    "American",
+    "Mediterranean",
   ];
 
   return (
@@ -87,7 +103,10 @@ const Explore = () => {
           {/* Filters Sidebar */}
           <motion.div
             initial={false}
-            animate={{ height: showFilters ? 'auto' : 0, opacity: showFilters ? 1 : 0 }}
+            animate={{
+              height: showFilters ? "auto" : 0,
+              opacity: showFilters ? 1 : 0,
+            }}
             className="lg:w-64 lg:opacity-100 lg:h-auto overflow-hidden lg:overflow-visible"
           >
             <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 space-y-4">
@@ -98,50 +117,68 @@ const Explore = () => {
 
               {/* Category Filter */}
               <div>
-                <label className="block text-sm font-medium mb-2">Category</label>
+                <label className="block text-sm font-medium mb-2">
+                  Category
+                </label>
                 <select
                   value={filters.category}
-                  onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, category: e.target.value })
+                  }
                   className="input-field"
                 >
                   <option value="">All Categories</option>
-                  {categories.slice(1).map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {categories.slice(1).map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {/* Cuisine Filter */}
               <div>
-                <label className="block text-sm font-medium mb-2">Cuisine</label>
+                <label className="block text-sm font-medium mb-2">
+                  Cuisine
+                </label>
                 <select
                   value={filters.cuisine}
-                  onChange={(e) => setFilters({ ...filters, cuisine: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, cuisine: e.target.value })
+                  }
                   className="input-field"
                 >
                   <option value="">All Cuisines</option>
-                  {cuisines.map(cuisine => (
-                    <option key={cuisine} value={cuisine}>{cuisine}</option>
+                  {cuisines.map((cuisine) => (
+                    <option key={cuisine} value={cuisine}>
+                      {cuisine}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {/* Price Range */}
               <div>
-                <label className="block text-sm font-medium mb-2">Price Range</label>
+                <label className="block text-sm font-medium mb-2">
+                  Price Range
+                </label>
                 <div className="flex space-x-2">
                   <input
                     type="number"
                     placeholder="Min"
                     value={filters.minPrice}
-                    onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, minPrice: e.target.value })
+                    }
                     className="input-field"
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     value={filters.maxPrice}
-                    onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, maxPrice: e.target.value })
+                    }
                     className="input-field"
                   />
                 </div>
@@ -149,10 +186,14 @@ const Explore = () => {
 
               {/* Rating Filter */}
               <div>
-                <label className="block text-sm font-medium mb-2">Minimum Rating</label>
+                <label className="block text-sm font-medium mb-2">
+                  Minimum Rating
+                </label>
                 <select
                   value={filters.rating}
-                  onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
+                  onChange={(e) =>
+                    setFilters({ ...filters, rating: e.target.value })
+                  }
                   className="input-field"
                 >
                   <option value="">Any Rating</option>
@@ -168,7 +209,9 @@ const Explore = () => {
                   <input
                     type="checkbox"
                     checked={filters.vegetarian}
-                    onChange={(e) => setFilters({ ...filters, vegetarian: e.target.checked })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, vegetarian: e.target.checked })
+                    }
                     className="rounded text-primary-500"
                   />
                   <span>Vegetarian</span>
@@ -177,7 +220,9 @@ const Explore = () => {
                   <input
                     type="checkbox"
                     checked={filters.vegan}
-                    onChange={(e) => setFilters({ ...filters, vegan: e.target.checked })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, vegan: e.target.checked })
+                    }
                     className="rounded text-primary-500"
                   />
                   <span>Vegan</span>
@@ -186,7 +231,9 @@ const Explore = () => {
                   <input
                     type="checkbox"
                     checked={filters.glutenFree}
-                    onChange={(e) => setFilters({ ...filters, glutenFree: e.target.checked })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, glutenFree: e.target.checked })
+                    }
                     className="rounded text-primary-500"
                   />
                   <span>Gluten Free</span>
@@ -195,16 +242,18 @@ const Explore = () => {
 
               {/* Clear Filters */}
               <button
-                onClick={() => setFilters({
-                  category: '',
-                  cuisine: '',
-                  minPrice: '',
-                  maxPrice: '',
-                  vegetarian: false,
-                  vegan: false,
-                  glutenFree: false,
-                  rating: ''
-                })}
+                onClick={() =>
+                  setFilters({
+                    category: "",
+                    cuisine: "",
+                    minPrice: "",
+                    maxPrice: "",
+                    vegetarian: false,
+                    vegan: false,
+                    glutenFree: false,
+                    rating: "",
+                  })
+                }
                 className="text-sm text-primary-500 hover:text-primary-600"
               >
                 Clear All Filters
@@ -221,7 +270,7 @@ const Explore = () => {
                 <select
                   value={`${sortBy}-${sortOrder}`}
                   onChange={(e) => {
-                    const [field, order] = e.target.value.split('-');
+                    const [field, order] = e.target.value.split("-");
                     setSortBy(field);
                     setSortOrder(order);
                   }}
@@ -230,8 +279,7 @@ const Explore = () => {
                   <option value="rating-desc">Top Rated</option>
                   <option value="price-asc">Price: Low to High</option>
                   <option value="price-desc">Price: High to Low</option>
-                  <option value="name-asc">Name: A to Z</option>
-                  <option value="name-desc">Name: Z to A</option>
+                  <option value="newest-desc">Newest</option>
                 </select>
               </div>
             </div>
