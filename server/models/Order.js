@@ -1,85 +1,102 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   restaurant: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Restaurant',
-    required: true
+    ref: "Restaurant",
+    required: true,
   },
-  items: [{
-    food: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Food',
-      required: true
+  items: [
+    {
+      food: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Food",
+        required: true,
+      },
+      name: String,
+      quantity: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+      price: Number,
+      specialInstructions: String,
     },
-    name: String,
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1
-    },
-    price: Number,
-    specialInstructions: String
-  }],
+  ],
   subtotal: {
     type: Number,
-    required: true
+    required: true,
   },
   deliveryFee: {
     type: Number,
-    required: true
+    required: true,
   },
   tax: {
     type: Number,
-    required: true
+    required: true,
   },
   total: {
     type: Number,
-    required: true
+    required: true,
   },
   deliveryAddress: {
     street: String,
     city: String,
     state: String,
     zipCode: String,
-    instructions: String
+    instructions: String,
   },
   paymentMethod: {
     type: String,
-    enum: ['cash', 'card', 'online'],
-    required: true
+    enum: ["cash", "card", "online"],
+    required: true,
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'completed', 'failed', 'refunded'],
-    default: 'pending'
+    enum: ["pending", "completed", "failed", "refunded"],
+    default: "pending",
   },
   orderStatus: {
     type: String,
-    enum: ['pending', 'confirmed', 'preparing', 'ready', 'on_delivery', 'delivered', 'cancelled'],
-    default: 'pending'
+    enum: [
+      "pending",
+      "confirmed",
+      "preparing",
+      "ready",
+      "on_delivery",
+      "delivered",
+      "cancelled",
+    ],
+    default: "pending",
   },
   estimatedDeliveryTime: Date,
   actualDeliveryTime: Date,
   driver: {
     name: String,
-    phone: String
+    phone: String,
   },
   rating: {
     type: Number,
     min: 1,
-    max: 5
+    max: 5,
   },
   review: String,
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('Order', orderSchema);
+// Add indexes for production performance
+orderSchema.index({ user: 1 });
+orderSchema.index({ restaurant: 1 });
+orderSchema.index({ orderStatus: 1 });
+orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ createdAt: -1 });
+
+module.exports = mongoose.model("Order", orderSchema);

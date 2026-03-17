@@ -1,71 +1,86 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const foodSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   price: {
     type: Number,
-    required: true
+    required: true,
   },
   discountPrice: Number,
   images: [String],
   category: {
     type: String,
     required: true,
-    enum: ['Appetizers', 'Main Course', 'Desserts', 'Beverages', 'Salads', 'Soups', 'Specials']
+    enum: [
+      "Appetizers",
+      "Main Course",
+      "Desserts",
+      "Beverages",
+      "Salads",
+      "Soups",
+      "Specials",
+    ],
   },
   cuisine: String,
   restaurant: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Restaurant',
-    required: true
+    ref: "Restaurant",
+    required: true,
   },
   ingredients: [String],
   nutritionalInfo: {
     calories: Number,
     protein: Number,
     carbs: Number,
-    fat: Number
+    fat: Number,
   },
   isVegetarian: {
     type: Boolean,
-    default: false
+    default: false,
   },
   isVegan: {
     type: Boolean,
-    default: false
+    default: false,
   },
   isGlutenFree: {
     type: Boolean,
-    default: false
+    default: false,
   },
   isSpicy: {
     type: Boolean,
-    default: false
+    default: false,
   },
   rating: {
     type: Number,
-    default: 0
+    default: 0,
   },
   totalRatings: {
     type: Number,
-    default: 0
+    default: 0,
   },
   isAvailable: {
     type: Boolean,
-    default: true
+    default: true,
   },
   preparationTime: String,
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('Food', foodSchema);
+// Add indexes for production performance
+foodSchema.index({ category: 1 });
+foodSchema.index({ restaurant: 1 });
+foodSchema.index({ isAvailable: 1 });
+foodSchema.index({ rating: -1 });
+foodSchema.index({ createdAt: -1 });
+
+module.exports = mongoose.model("Food", foodSchema);

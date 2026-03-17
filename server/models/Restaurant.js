@@ -1,17 +1,17 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const restaurantSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   image: {
     type: String,
-    required: true
+    required: true,
   },
   coverImage: String,
   cuisine: [String],
@@ -23,13 +23,13 @@ const restaurantSchema = new mongoose.Schema({
     country: String,
     coordinates: {
       lat: Number,
-      lng: Number
-    }
+      lng: Number,
+    },
   },
   contact: {
     phone: String,
     email: String,
-    website: String
+    website: String,
   },
   openingHours: {
     monday: { open: String, close: String },
@@ -38,38 +38,45 @@ const restaurantSchema = new mongoose.Schema({
     thursday: { open: String, close: String },
     friday: { open: String, close: String },
     saturday: { open: String, close: String },
-    sunday: { open: String, close: String }
+    sunday: { open: String, close: String },
   },
   rating: {
     type: Number,
     default: 0,
     min: 0,
-    max: 5
+    max: 5,
   },
   totalRatings: {
     type: Number,
-    default: 0
+    default: 0,
   },
   deliveryFee: {
     type: Number,
-    default: 0
+    default: 0,
   },
   minimumOrder: {
     type: Number,
-    default: 0
+    default: 0,
   },
   estimatedDeliveryTime: {
     type: String,
-    default: '30-45 min'
+    default: "30-45 min",
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('Restaurant', restaurantSchema);
+// Add indexes for production performance
+restaurantSchema.index({ isActive: 1 });
+restaurantSchema.index({ rating: -1 });
+restaurantSchema.index({ cuisine: 1 });
+restaurantSchema.index({ "address.city": 1 });
+restaurantSchema.index({ createdAt: -1 });
+
+module.exports = mongoose.model("Restaurant", restaurantSchema);

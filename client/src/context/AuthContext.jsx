@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   // Fetch user on app start if token exists
@@ -55,7 +55,6 @@ export const AuthProvider = ({ children }) => {
       const res = await api.get("/auth/profile");
       setUser(res.data);
     } catch (err) {
-      console.error("Profile fetch failed:", err);
       logout(); // token invalid
     } finally {
       setLoading(false);
