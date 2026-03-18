@@ -1,3 +1,4 @@
+// server/index.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -11,30 +12,30 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.CLIENT_URL, // Netlify frontend URL
     credentials: true,
-  }),
+  })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Database connection
 mongoose
-  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/foodexpress", {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
+// Root route
 app.get("/", (req, res) => {
   res.send("Food Backend is running 🚀");
 });
 
 // Routes
-const statsRoutes = require("./routes/stats");
-const testimonialsRoutes = require("./routes/testimonials");
-app.use("/api/stats", statsRoutes);
-app.use("/api/testimonials", testimonialsRoutes);
+app.use("/api/stats", require("./routes/stats"));
+app.use("/api/testimonials", require("./routes/testimonials"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/users", require("./routes/users"));
 app.use("/api/restaurants", require("./routes/restaurants"));
